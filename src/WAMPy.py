@@ -21,11 +21,12 @@ import numpy as np
 import rospy
 import roslib; roslib.load_manifest('WAMPy')
 # from wam_msgs.msg import RTJointPos
-from wam_msgs.msg import RTJointPos
+from wam_msgs.msg import RTJointVel, RTJointPos
 from wam_srvs.srv import *
 from numpy import zeros
 from std_srvs.srv import Empty
 from sensor_msgs.msg import JointState
+import time
 
 
 
@@ -105,19 +106,25 @@ def create_joint_trajectory(start_position, end_position,
 
 
 def live_wam_move(velocities, frequency=250):
-    pub = rospy.Publisher("/wam/jnt_pos_cmd", RTJointVel)
+    pub = rospy.Publisher("/wam/jnt_vel_cmd", RTJointVel)
 
     while pub.get_num_connections() < 1:
         print "Waiting on the publisher to go up."
         rospy.sleep(0.5)
 
     message_for_service = RTJointVel()
+    
+    print message_for_service
 
     r = rospy.Rate(frequency)
 
     message_for_service.velocities = velocities
-    pub.publish(message_for_service)
-    r.sleep()
+    x = 0
+    while x < frequency:
+        pub.publish(message_for_service)
+        x+= 1
+        print "x is now:", x
+        r.sleep()
 
 
 def send_joint_trajectory(trajectory, velocities, frequency=250):
@@ -303,17 +310,21 @@ if __name__ == "__main__":
                    -0.186481924314296]
 
 
+    prop_freq = 500
 
+    print "Asking to move..."
+    live_wam_move([0.6, 0, 0, 0], prop_freq)
+    live_wam_move([0, 0, 0, 0], prop_freq)
+    print "Done..."
 
-
-    move_wam_from_current_location(wam_home, 2, 250)
-
-    move_wam_from_current_location(experiment_home_point, 2, 250)
-    move_wam_from_current_location(experiment_pickup_point, 2, 250)
+    move_wam_from_current_location(wam_home, 2, prop_freq)
+    
+    move_wam_from_current_location(experiment_home_point, 2, prop_freq)
+    move_wam_from_current_location(experiment_pickup_point, 2, prop_freq)
     close_wam_hand()
-    move_wam_from_current_location(experiment_dropoff_point, 2, 250)
+    move_wam_from_current_location(experiment_dropoff_point, 2, prop_freq)
     open_wam_hand()
-    move_wam_from_current_location(experiment_home_point, 2, 250)
+    move_wam_from_current_location(experiment_home_point, 2, prop_freq)
     close_wam_hand_spread()
-    move_wam_from_current_location(wam_home, 2, 250)
+    move_wam_from_current_location(wam_home, 2, prop_freq)
 
