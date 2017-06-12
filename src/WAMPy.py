@@ -103,6 +103,23 @@ def create_joint_trajectory(start_position, end_position,
     return trajectory, vel_lims
 
 
+
+def live_wam_move(velocities, frequency=250):
+    pub = rospy.Publisher("/wam/jnt_pos_cmd", RTJointVel)
+
+    while pub.get_num_connections() < 1:
+        print "Waiting on the publisher to go up."
+        rospy.sleep(0.5)
+
+    message_for_service = RTJointVel()
+
+    r = rospy.Rate(frequency)
+
+    message_for_service.velocities = velocities
+    pub.publish(message_for_service)
+    r.sleep()
+
+
 def send_joint_trajectory(trajectory, velocities, frequency=250):
     """
     This is used to send a trajectory to the WAM arm at a given frequency.
