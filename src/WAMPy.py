@@ -113,17 +113,15 @@ def live_wam_move(velocities, frequency=250):
         rospy.sleep(0.5)
 
     message_for_service = RTJointVel()
-    
-    print message_for_service
 
     r = rospy.Rate(frequency)
 
     message_for_service.velocities = velocities
     x = 0
-    while x < frequency:
+    while x < frequency/4.0:
         pub.publish(message_for_service)
         x+= 1
-        print "x is now:", x
+        #print "x is now:", x
         r.sleep()
 
 
